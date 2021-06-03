@@ -127,17 +127,19 @@ condicionHoyo tiro = between 5 20 (velocidad tiro) && precision tiro >95
 --CUMPLE PERO hay mucha logica repetida en las condiciones y efectos
 
 
---Parametrizamos la  condicion y el efecto (las guardas) q eran lo que se nos repetian en el laguna y tunelRampa
-obstaculoSuperableSi :: (Tiro->Bool)->(Tiro->Tiro)->Tiro->Tiro
-obstaculoSuperableSi condiciontuneles efecto tiro | condiciontuneles tiro = efecto tiro    
-                                                  | otherwise = tiroDetenido
 
 --Entonces ahora puedo escribir al tunelRampa y laguna de la siguiente manera:
 
 --Aplicacion parcial con el tiro
 
+{-
 
---
+--Parametrizamos la  condicion y el efecto (las guardas) q eran lo que se nos repetian en el laguna y tunelRampa
+obstaculoSuperableSi :: (Tiro->Bool)->(Tiro->Tiro)->Tiro->Tiro
+obstaculoSuperableSi condiciontuneles efecto tiro | condiciontuneles tiro = efecto tiro    
+                                                  | otherwise = tiroDetenido
+
+
 tunelConRampa :: Tiro->Tiro
 tunelConRampa  = obstaculoSuperableSi condicionTunelRampa efectoTunelRampa 
 
@@ -165,9 +167,81 @@ condicionHoyo :: Tiro->Bool
 condicionHoyo tiro = between 5 20 (velocidad tiro) && precision tiro >95 && rasdelSuelo tiro
 efectoHoyo:: Tiro->Tiro
 efectoHoyo _ = tiroDetenido
+-}
+--
+--Parametrizamos la  condicion y el efecto (las guardas) q eran lo que se nos repetian en el laguna y tunelRampa
+
+{-
+obstaculoSuperableSi :: (Tiro->Bool)->(Tiro->Tiro)->Tiro->Tiro
+obstaculoSuperableSi condiciontuneles efecto tiro | condiciontuneles tiro = efecto tiro    
+                                                  | otherwise = tiroDetenido
+-}
+
+
+
+data Obstaculo = UnObstaculo{
+  puedeSuperar :: Tiro->Bool
+, efectoLuegoDeSuperar  :: Tiro->Tiro
+}
+
+intentarSuperarObstaculo :: Obstaculo->Tiro->Tiro
+intentarSuperarObstaculo obstaculo tiroOriginal 
+   | puedeSuperar obstaculo tiroOriginal = efectoLuegoDeSuperar obstaculo tiroOriginal
+   | otherwise = tiroDetenido   
+
+
+tunelConRampa :: Obstaculo
+tunelConRampa  = UnObstaculo condicionTunelRampa efectoTunelRampa 
+
+condicionTunelRampa :: Tiro->Bool
+condicionTunelRampa tiro = precision tiro > 90 && rasdelSuelo tiro
+rasdelSuelo = (0==).altura
+
+efectoTunelRampa :: Tiro->Tiro
+efectoTunelRampa tiro = UnTiro{velocidad= 2*(velocidad tiro), precision= 100, altura= 0}
+--
+laguna :: Number->Obstaculo
+laguna largo = UnObstaculo condicionLaguna (efectoLaguna largo)
+
+condicionLaguna ::Tiro->Bool
+condicionLaguna tiro =velocidad tiro >80 && between 1 5 (altura tiro)
+
+efectoLaguna :: Number->Tiro->Tiro
+efectoLaguna largo tiro = UnTiro{velocidad = velocidad tiro, precision = precision tiro, altura= (altura tiro)/ largo}
+
+--
+hoyo :: Obstaculo
+hoyo  = UnObstaculo condicionHoyo efectoHoyo
+
+condicionHoyo :: Tiro->Bool
+condicionHoyo tiro = between 5 20 (velocidad tiro) && precision tiro >95 && rasdelSuelo tiro
+efectoHoyo:: Tiro->Tiro
+efectoHoyo _ = tiroDetenido
+
+ ------------------ REFACTORIZACION PARA PODER REALIZAR EL PUNTO 4a----------------------------------
+
+
+
+
+
 
 
 --Nota: se puede crear un type Obstaculo = Tiro->Tiro
 
+--4)
 
+
+palosUtiles :: Jugador->Obstaculo->Palos
+palosUtiles aJugador obstaculo = filter (leSirveParaSuperar aJugador obstaculo ) todosPalos
+
+--condicionUtil :: Jugador->Obstaculo->Palo->Bool
+--condicionUtil aJugador obstaculo palo = obstaculo (golpe aJugador palo ) /= tiroDetenido
+--No es una buena idea compararlo con el tiroDetenido
+
+leSirveParaSuperar :: Jugador->Obstaculo->Palo->Bool
+leSirveParaSuperar aJugador obstaculo palo = puedeSuperar obstaculo (golpe aJugador palo )
+
+
+--Por eso ahora se reafactoriza la solucion planteada en el punto anterior con tal de conocer si supera y como queda luego del efecto
+--         IR A LINEA 168
 
