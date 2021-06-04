@@ -257,7 +257,6 @@ obstaculosSuperados tiro (obstaculo:obstaculos)
 
  --superarobstaculos tiro obstaculos = (length.takeWhile (puedeSuperar) ???) obstaculos 
 
-
 --4c)
 
 maximoSegun :: Ord b => (a->b)->[a]->a
@@ -273,3 +272,4 @@ palosMasUtil :: Jugador->[Obstaculo]->Palo
 palosMasUtil aJugador obstaculos = maximoSegun (flip obstaculosSuperados  obstaculos. golpe aJugador) todosPalos
 
 
+--5)))
