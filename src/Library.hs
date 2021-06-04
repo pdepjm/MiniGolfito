@@ -29,11 +29,7 @@ type Puntos = Number
 -- Funciones útiles
 between n m x = elem x [n .. m]
 
-maximoSegun f = foldl1 (mayorSegun f)
 
-mayorSegun f a b
-  | f a > f b = a
-  | otherwise = b
 
 
 --1) Modelado de palos de golf  y obstaculos 
@@ -244,4 +240,36 @@ leSirveParaSuperar aJugador obstaculo palo = puedeSuperar obstaculo (golpe aJuga
 
 --Por eso ahora se reafactoriza la solucion planteada en el punto anterior con tal de conocer si supera y como queda luego del efecto
 --         IR A LINEA 168
+
+
+--4b)
+
+obstaculosSuperados ::Tiro-> [Obstaculo]->Number
+
+obstaculosSuperados tiro []= 0  --caso de 0 obstaculos
+
+obstaculosSuperados tiro (obstaculo:obstaculos)
+ |puedeSuperar obstaculo tiro = 1+ obstaculosSuperados (efectoLuegoDeSuperar obstaculo tiro) obstaculos
+ | otherwise = 0
+
+ --Bonus con take while
+--ver video
+
+ --superarobstaculos tiro obstaculos = (length.takeWhile (puedeSuperar) ???) obstaculos 
+
+
+--4c)
+
+maximoSegun :: Ord b => (a->b)->[a]->a
+maximoSegun f = foldl1 (mayorSegun f) 
+
+mayorSegun :: Ord x => (t->x)->(t->t->t)
+mayorSegun f a b
+  | f a > f b = a
+  | otherwise = b
+
+
+palosMasUtil :: Jugador->[Obstaculo]->Palo
+palosMasUtil aJugador obstaculos = maximoSegun (flip obstaculosSuperados  obstaculos. golpe aJugador) todosPalos
+
 
